@@ -88,31 +88,33 @@ _EOF_
 
 truncate -s3G boottest.img
 
+# 2048 sectors to a megabyte
 guestfish -a boottest.img << _EOF_
 run
 part-init /dev/sda gpt
-part-add /dev/sda p 63 314572
-part-add /dev/sda p 314573 -64
-mkfs ext2 /dev/sda2
-set-e2label /dev/sda2 boottest
+part-add /dev/sda p 2048   10240
+part-add /dev/sda p 12288  102400
+part-add /dev/sda p 104448 -2048
+part-set-gpt-type /dev/sda 1 21686148-6449-6E6F-744E-656564454649
+part-set-gpt-type /dev/sda 2 C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+mkfs ext2 /dev/sda3
+set-e2label /dev/sda3 boottest
 _EOF_
 
-docker export newfs | guestfish -a boottest.img run : mount /dev/sda2 / : tar-in - /
+docker export newfs | guestfish -a boottest.img run : mount /dev/sda3 / : tar-in - /
 
 docker rm newfs
 
 guestfish -a boottest.img << _EOF_
 run
-mount /dev/sda2 /
-copy-file-to-device /boot/efiboot.img /dev/sda1
+mount /dev/sda3 /
+copy-file-to-device /boot/efiboot.img /dev/sda2
 mkdir /boot/efi
-mount /dev/sda1 /boot/efi
-mkdir /boot/efi/efi/boot
+mount /dev/sda2 /boot/efi
+mkdir /tmp
 copy-in pam-login grub-gptalt /tmp
 mv /tmp/pam-login /etc/pam.d/login
 mv /tmp/grub-gptalt /boot/efi/efi/boot/grub.cfg
-part-set-gpt-type /dev/sda 1 C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+command "grub-install --target=i386-pc /dev/sda"
+rmdir /tmp
 _EOF_
-
-cp pam-login "${scratch}/etc/pam.d/login"
-cp grub.gptalt
