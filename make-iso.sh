@@ -4,9 +4,7 @@ set -ex
 
 docker run -i --name newfs docker.io/redjays/xenial:bootable bash -exs << _EOF_
 export TERM=dumb
-export DEBIAN_FRONTEND=noninteractive
 
-apt-get install -q -y dracut-core
 cat << _THERE_ > /etc/fstab.sys
 tmpfs   /var            tmpfs   size=256m       0 0
 tmpfs   /tmp            tmpfs   size=64m        0 0
@@ -110,6 +108,10 @@ sed -e 's/console=tty0/console=ttyS0,115200/g' \
     -e 's/root=UNSET/root=LABEL=boottest/g' \
       "${scratch}/isolinux/syslinux.cfg.tpl" >> "${isolinux}/syslinux.cfg"
 
+sed -e 's/console=tty0/console=ttyS0,115200/g' \
+    -e 's/root=UNSET/root=LABEL=boottest/g' \
+      "${scratch}/boot/grub/grub.cfg.tpl" >> "${scratch}/boot/grub/grub.cfg"
+
 for k in "${isolinux}/boot"/vmlinuz* "${isolinux}/boot"/initrd.img* ; do
   d="${k##*/}"
   ln "${k}" "${isolinux}/${d}"
@@ -123,6 +125,6 @@ xorriso --report_about HINT -as xorrisofs -U -A boottest -V boottest -volset boo
   -eltorito-alt-boot -e /boot/efiboot.img -no-emul-boot -isohybrid-gpt-basdat \
   -eltorito-alt-boot -e /boot/macboot.img -no-emul-boot -isohybrid-gpt-basdat -isohybrid-apm-hfsplus
 
-#isohybrid boottest.iso
+isohybrid boottest.iso
 
 rm -rf "${scratch}" "${isolinux}"
