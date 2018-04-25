@@ -9,6 +9,7 @@ cat << _THERE_ > /etc/fstab.sys
 tmpfs   /var            tmpfs   size=256m       0 0
 tmpfs   /tmp            tmpfs   size=64m        0 0
 tmpfs   /etc/ssh        tmpfs   size=1m         0 0
+tmpfs	/mnt		tmpfs	size=1m		0 0
 _THERE_
 cat << _THERE_ > /etc/dracut.conf
 filesystems+=" iso9660 "
