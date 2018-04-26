@@ -2,7 +2,7 @@
 
 set -ex
 
-docker run -i --name newfs docker.io/redjays/xenial:bootable bash -exs << _EOF_
+docker run -i --name newfs docker.io/redjays/xenial:installer bash -exs << _EOF_
 export TERM=dumb
 
 cat << _THERE_ > /etc/fstab.sys
@@ -100,17 +100,17 @@ pxz "${scratch}/ssh.tar"
 cp -R "${scratch}/boot" "${isolinux}/boot"
 
 cat << _EOF_ > "${isolinux}/syslinux.cfg"
-serial 0 115200
+serial 1 115200
 prompt 1
 timeout 3600
 _EOF_
 
-sed -e 's/console=tty0/console=ttyS0,115200/g' \
-    -e 's/root=UNSET/root=LABEL=boottest/g' \
+sed -e 's/console=tty0/console=ttyS1,115200/g' \
+    -e 's/root=UNSET/root=LABEL=xe_installer/g' \
       "${scratch}/isolinux/syslinux.cfg.tpl" >> "${isolinux}/syslinux.cfg"
 
-sed -e 's/console=tty0/console=ttyS0,115200/g' \
-    -e 's/root=UNSET/root=LABEL=boottest/g' \
+sed -e 's/console=tty0/console=ttyS1,115200/g' \
+    -e 's/root=UNSET/root=LABEL=xe_installer/g' \
       "${scratch}/boot/grub/grub.cfg.tpl" >> "${scratch}/boot/grub/grub.cfg"
 
 for k in "${isolinux}/boot"/vmlinuz* "${isolinux}/boot"/initrd.img* ; do
@@ -118,7 +118,7 @@ for k in "${isolinux}/boot"/vmlinuz* "${isolinux}/boot"/initrd.img* ; do
   ln "${k}" "${isolinux}/${d}"
 done
 
-xorriso --report_about HINT -as xorrisofs -U -A boottest -V boottest -volset boottest -J -joliet-long -r -rational-rock -o boottest.iso \
+xorriso --report_about HINT -as xorrisofs -U -A xe_installer -V xe_installer -volset xe_installer -J -joliet-long -r -rational-rock -o installercore.iso \
   -graft-points "/isolinux=${isolinux}" \
   -partition_cyl_align off -partition_offset 0 -apm-block-size 2048 -iso_mbr_part_type 0x00 \
   -b isolinux/isolinux.bin -c boot/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -126,6 +126,6 @@ xorriso --report_about HINT -as xorrisofs -U -A boottest -V boottest -volset boo
   -eltorito-alt-boot -e /boot/efiboot.img -no-emul-boot -isohybrid-gpt-basdat \
   -eltorito-alt-boot -e /boot/macboot.img -no-emul-boot -isohybrid-gpt-basdat -isohybrid-apm-hfsplus
 
-isohybrid boottest.iso
+isohybrid installercore.iso
 
 rm -rf "${scratch}" "${isolinux}"
