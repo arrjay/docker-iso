@@ -64,7 +64,7 @@ _THERE_
 ln -sf /dev/null /etc/tmpfiles.d/home.conf
 rm -rf /etc/apparmor.d/cache && ln -sf /var/run/apparmor-cache /etc/apparmor.d/cache
 
-find /usr/src/iomemory-* /var/lib/dkms/iomemory-vsl/ -type d -exec chmod a+rx {} \;
+find /usr/src/iomemory-* /var/lib/dkms/iomemory-vsl/ /etc/sysconfig/ -type d -exec chmod a+rx {} \;
 for i in /boot/initrd.img* ; do
   v="\${i#/boot/initrd.img-}"
   dracut -f "\${i}" "\${v}"
@@ -104,6 +104,8 @@ serial 1 115200
 prompt 1
 timeout 3600
 _EOF_
+
+cat "${scratch}/isolinux/syslinux.cfg.tpl"
 
 sed -e 's/console=tty0/console=ttyS1,115200/g' \
     -e 's/root=UNSET/root=LABEL=xe_installer/g' \
