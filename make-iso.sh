@@ -120,7 +120,7 @@ for k in "${isolinux}/boot"/vmlinuz* "${isolinux}/boot"/initrd.img* ; do
   ln "${k}" "${isolinux}/${d}"
 done
 
-xorriso --report_about HINT -as xorrisofs -U -A xe_installer -V xe_installer -volset xe_installer -J -joliet-long -r -rational-rock -o installercore.iso \
+xorriso --report_about HINT -as xorrisofs -U -A xe_installer -V xe_installer -volset xe_installer -r -rational-rock -o installercore.iso \
   -graft-points "/isolinux=${isolinux}" \
   -partition_cyl_align off -partition_offset 0 -apm-block-size 2048 -iso_mbr_part_type 0x00 \
   -b isolinux/isolinux.bin -c boot/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
